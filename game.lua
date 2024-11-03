@@ -54,10 +54,11 @@ function game.load()
             move = false,
             rotation = 0,
             resetting_rotation = false,
+            index = 1,
         },
         {
             image = love.graphics.newImage("assets/classified_file_2.jpeg"),
-            x = 360,
+            x = 300,
             y = 0,
             scale = 1,
             animating_part_1_clicked = false,
@@ -66,6 +67,20 @@ function game.load()
             move = false,
             rotation = 0,
             resetting_rotation = false,
+            index = 2,
+        },
+        {
+            image = love.graphics.newImage("assets/classified_file_1.jpeg"),
+            x = 600,
+            y = 0,
+            scale = 1,
+            animating_part_1_clicked = false,
+            animating_part_2_clicked = false,
+            animation_timer = 0,
+            move = false,
+            rotation = 0,
+            resetting_rotation = false,
+            index = 3,
         },
     }
 end
@@ -122,7 +137,7 @@ function game.mousepressed(x, y, button, istouch, presses)
     -- check if classified files are clicked
     if button == 1 then
         classified_files = reverse(classified_files)
-        for _, file in ipairs(classified_files) do
+        for index, file in ipairs(classified_files) do
             local width = file.image:getWidth()
             local height = file.image:getHeight()
             if x >= file.x and x <= file.x + width and
@@ -131,8 +146,10 @@ function game.mousepressed(x, y, button, istouch, presses)
                 file.animating_part_1_clicked = true
                 file.animation_timer = 0
                 -- change the index of the classified file to be the last one
-                table.remove(classified_files, _)
+                table.remove(classified_files, index)
+                classified_files = reverse(classified_files)
                 table.insert(classified_files, file)
+                break
             end
         end
     end
