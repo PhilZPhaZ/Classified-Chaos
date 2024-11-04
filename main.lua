@@ -55,11 +55,14 @@ function love.load()
         minwidth = 1280,
         minheight = 720,
     })
-    love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
+    love.graphics.setBackgroundColor(0, 0, 0)
 
     -- load shaders
-    effect = moonshine(moonshine.effects.crt)
+    effect = moonshine(moonshine.effects.crt).chain(moonshine.effects.scanlines)
     effect.crt.distortionFactor = {1.02, 1.04}
+    effect.crt.feather = 0.1
+    effect.scanlines.opacity = 0.3
+    effect.scanlines.thickness = 0.5
 
     -- load assets
     menu.load()
@@ -114,13 +117,13 @@ function love.mousemoved(x, y, dx, dy, istouch)
 end
 
 function love.draw()
-    if GAME_STATE == GAME_STATES.MENU then
-        effect(function()
+    effect(function()
+        if GAME_STATE == GAME_STATES.MENU then
             menu.draw()
-        end)
-    elseif GAME_STATE == GAME_STATES.GAME then
-        game.draw()
-    end
+        elseif GAME_STATE == GAME_STATES.GAME then
+            game.draw()
+        end
+    end)
 end
 
 function love.resize(w, h)

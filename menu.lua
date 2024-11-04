@@ -24,6 +24,7 @@ local background
 
 -- button dimensions
 local total_buttons_height
+local button_spacing = 10
 
 -- all sprites
 local all_sprites = {}
@@ -31,13 +32,17 @@ local all_sprites = {}
 -- mouse coordinates
 local mouse_x, mouse_y
 
+-- sound effects
+local click_sound
+local hover_click_sound = false
+
 local function update_buttons()
     total_buttons_height = 0
     -- update buttons
     for _, button in pairs(all_sprites.button) do
         button.width = font:getWidth(button.text)
         button.height = font:getHeight(button.text)
-        total_buttons_height = total_buttons_height + button.height
+        total_buttons_height = total_buttons_height + button.height + button_spacing
     end
 
     -- update coordinates depending on screen size
@@ -45,7 +50,7 @@ local function update_buttons()
     for _, button in pairs(all_sprites.button) do
         button.x = SCREEN_WIDTH / 2 - button.width / 2
         button.y = y
-        y = y + button.height
+        y = y + button.height + button_spacing
     end
 end
 
@@ -60,17 +65,29 @@ function menu.load()
 
     -- update buttons
     update_buttons()
+
+    -- load sound effects
+    click_sound = love.audio.newSource("assets/sound/button_click.wav", "static")
 end
 
 function menu.update(dt)
     -- update menu
     -- handle mouse hover
     mouse_x, mouse_y = love.mouse.getPosition()
-    mouse.hover(all_sprites, mouse_x, mouse_y)
+    local is_hover = mouse.hover(all_sprites, mouse_x, mouse_y)
+
+    -- play hover sound effect
+    if is_hover and not hover_click_sound then
+        hover_click_sound = true
+        click_sound:play()
+    elseif not is_hover then
+        hover_click_sound = false
+    end
 end
 
 function menu.mousepressed(x, y, button, istouch, presses)
     mouse.pressed(all_sprites, x, y, button, istouch, presses)
+    click_sound:play()
 end
 
 function menu.mousereleased(x, y, button, istouch, presses)

@@ -194,22 +194,25 @@ end
 local function handle_mouse_hover_menu(all_sprites, x, y)
     -- handle mouse hover in menu
     -- buttons
+    local hover = false
     for _, file in pairs(all_sprites.button) do
         if file.clickable then
             if x >= file.x and x <= file.x + file.width and y >= file.y and y <= file.y + file.height then
                 file.color = {0.07, 0.07, 0.07}
+                hover = true
             else
                 file.color = {1, 1, 1}
             end
         end
     end
+    return hover
 end
 
 function mouse.hover(all_sprites, x, y)
     if GAME_STATE == GAME_STATES.MENU then
-        handle_mouse_hover_menu(all_sprites, x, y)
+        return handle_mouse_hover_menu(all_sprites, x, y)
     elseif GAME_STATE == GAME_STATES.GAME then
-        handle_mouse_hover_game(all_sprites, x, y)
+        return handle_mouse_hover_game(all_sprites, x, y)
     end
 end
 
