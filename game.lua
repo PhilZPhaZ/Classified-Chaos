@@ -16,6 +16,7 @@ limitations under the License.
 
 require "lib.table"
 require "lib.math"
+require "drawing.draw"
 
 local game = {}
 
@@ -23,13 +24,7 @@ local game = {}
 local classified_files = {}
 
 -- animations variables
-local scale_classified_file_1 = 1
-local scale_classified_file_2 = 1
-local animating_1 = false
-local animating_2 = false
 local animation_time = 0.15
-local animation_timer_1 = 0
-local animation_timer_2 = 0
 
 -- rotation variables
 local max_rotation = 0.1
@@ -55,6 +50,7 @@ function game.load()
             rotation = 0,
             resetting_rotation = false,
             index = 1,
+            visible = true,
         },
         {
             image = love.graphics.newImage("assets/classified_file_2.jpeg"),
@@ -67,7 +63,7 @@ function game.load()
             move = false,
             rotation = 0,
             resetting_rotation = false,
-            index = 2,
+            visible = true,
         },
         {
             image = love.graphics.newImage("assets/classified_file_1.jpeg"),
@@ -80,7 +76,7 @@ function game.load()
             move = false,
             rotation = 0,
             resetting_rotation = false,
-            index = 3,
+            visible = true,
         },
     }
 end
@@ -89,32 +85,34 @@ function game.update(dt)
     -- update game
     -- animate classified files
     for _, file in ipairs(classified_files) do
-        -- animate classified files
-        if file.animating_part_1_clicked then
-            file.animation_timer = file.animation_timer + dt
-            if file.animation_timer <= animation_time / 2 then
-                file.scale = 1 - (file.animation_timer / (animation_time / 2)) * 0.1
-            else
-                file.scale = 0.9
-                file.animating_part_1_clicked = false
+        if file.visible then
+            -- animate classified files
+            if file.animating_part_1_clicked then
+                file.animation_timer = file.animation_timer + dt
+                if file.animation_timer <= animation_time / 2 then
+                    file.scale = 1 - (file.animation_timer / (animation_time / 2)) * 0.1
+                else
+                    file.scale = 0.9
+                    file.animating_part_1_clicked = false
+                end
+            elseif file.animating_part_2_clicked then
+                file.animation_timer = file.animation_timer + dt
+                if file.animation_timer <= animation_time / 2 then
+                    file.scale = 0.9 + (file.animation_timer / (animation_time / 2)) * 0.1
+                else
+                    file.scale = 1
+                    file.animating_part_2_clicked = false
+                end
             end
-        elseif file.animating_part_2_clicked then
-            file.animation_timer = file.animation_timer + dt
-            if file.animation_timer <= animation_time / 2 then
-                file.scale = 0.9 + (file.animation_timer / (animation_time / 2)) * 0.1
-            else
-                file.scale = 1
-                file.animating_part_2_clicked = false
-            end
-        end
-        -- reset rotation
-        if file.resetting_rotation then
-            local rotation_step = max_rotation / 5
-            if math.abs(file.rotation) > rotation_step then
-                file.rotation = file.rotation - sign(file.rotation) * rotation_step
-            else
-                file.rotation = 0
-                file.resetting_rotation = false
+            -- reset rotation
+            if file.resetting_rotation then
+                local rotation_step = max_rotation / 5
+                if math.abs(file.rotation) > rotation_step then
+                    file.rotation = file.rotation - sign(file.rotation) * rotation_step
+                else
+                    file.rotation = 0
+                    file.resetting_rotation = false
+                end
             end
         end
     end
@@ -138,18 +136,20 @@ function game.mousepressed(x, y, button, istouch, presses)
     if button == 1 then
         classified_files = reverse(classified_files)
         for index, file in ipairs(classified_files) do
-            local width = file.image:getWidth()
-            local height = file.image:getHeight()
-            if x >= file.x and x <= file.x + width and
-                y >= file.y and y <= file.y + height then
-                file.move = true
-                file.animating_part_1_clicked = true
-                file.animation_timer = 0
-                -- change the index of the classified file to be the last one
-                table.remove(classified_files, index)
-                classified_files = reverse(classified_files)
-                table.insert(classified_files, file)
-                break
+            if file.visible then
+                local width = file.image:getWidth()
+                local height = file.image:getHeight()
+                if x >= file.x and x <= file.x + width and
+                    y >= file.y and y <= file.y + height then
+                    file.move = true
+                    file.animating_part_1_clicked = true
+                    file.animation_timer = 0
+                    -- change the index of the classified file to be the last one
+                    table.remove(classified_files, index)
+                    classified_files = reverse(classified_files)
+                    table.insert(classified_files, file)
+                    break
+                end
             end
         end
     end
@@ -160,14 +160,16 @@ function game.mousereleased(x, y, button, istouch, presses)
     if button == 1 then
         -- stop moving classified files
         for _, file in ipairs(classified_files) do
-            if file.move then
-                file.animating_part_1_clicked = false
-                file.animating_part_2_clicked = true
-                file.animation_timer = 0
-            end
+            if file.visible then
+                if file.move then
+                    file.animating_part_1_clicked = false
+                    file.animating_part_2_clicked = true
+                    file.animation_timer = 0
+                end
 
-            file.move = false
-            file.resetting_rotation = true
+                file.move = false
+                file.resetting_rotation = true
+            end
         end
     end
 end
@@ -176,7 +178,7 @@ function game.mousemoved(x, y, dx, dy, istouch)
     -- handle mouse move
     -- move classified files
     for _, file in ipairs(classified_files) do
-        if file.move then
+        if file.move and file.visible then
             file.x = file.x + dx
             file.y = file.y + dy
 
@@ -197,9 +199,9 @@ function game.draw()
     -- draw game
     -- draw classified files
     for _, file in ipairs(classified_files) do
-        local width = file.image:getWidth()
-        local height = file.image:getHeight()
-        love.graphics.draw(file.image, file.x + width / 2, file.y + height / 2, file.rotation, file.scale, file.scale, width / 2, height / 2)
+        if file.visible then
+            draw_classified_file(file)
+        end
     end
 end
 
