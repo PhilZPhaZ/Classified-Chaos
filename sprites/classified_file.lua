@@ -26,9 +26,9 @@ local classified_file = {
         move = false,
         rotation = 0,
         resetting_rotation = false,
-        index = 1,
         visible = true,
         moveable = true,
+        sprite_type = "classified_file",
     },
     {
         image = love.graphics.newImage("assets/classified_file/classified_file_2.jpeg"),
@@ -43,6 +43,7 @@ local classified_file = {
         resetting_rotation = false,
         visible = true,
         moveable = true,
+        sprite_type = "classified_file",
     },
     {
         image = love.graphics.newImage("assets/classified_file/classified_file_1.jpeg"),
@@ -57,6 +58,7 @@ local classified_file = {
         resetting_rotation = false,
         visible = true,
         moveable = true,
+        sprite_type = "classified_file",
     },
 }
 

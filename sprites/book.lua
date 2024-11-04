@@ -14,11 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 --]]
 
--- import all sprites
-local sprites = {
-    CLASSIFIED_FILE = require "sprites.classified_file",
-    BOOK = require "sprites.book",
-    MENU_BUTTON = require "sprites.menu.button",
+local book = {
+    {
+        image = love.graphics.newImage("assets/book_deco.jpeg"),
+        x = 100,
+        y = 100,
+        scale = 0.5,
+        move = false,
+        rotation = 0,
+        moveable = false,
+        visible = true,
+    }
 }
 
-return sprites
+return book

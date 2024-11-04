@@ -29,9 +29,6 @@ local game = {}
 -- all sprites
 local all_sprites = {}
 
--- classified files
-local classified_files = {}
-
 -- animations variables
 local animation_time = 0.15
 
@@ -74,12 +71,12 @@ end
 function game.mousepressed(x, y, button, istouch, presses)
     -- handle mouse press
     -- check if classified files are clicked
-    mouse.pressed(all_sprites, x, y, button)
+    mouse.pressed(all_sprites, x, y, button, istouch, presses)
 end
 
 function game.mousereleased(x, y, button, istouch, presses)
     -- handle mouse release
-    mouse.released(all_sprites, button)
+    mouse.released(all_sprites, x, y, button, istouch, presses)
 end
 
 function game.mousemoved(x, y, dx, dy, istouch)

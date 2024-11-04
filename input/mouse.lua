@@ -49,17 +49,39 @@ require "lib.table"
 
 local mouse = {}
 
-function mouse.pressed(all_sprites, x, y, button)
-    if button == 1 then
-        for _, sprite in pairs(all_sprites) do
+local is_classified_file_clicked -- fucking bad way to implement it but idk how to do it correctly
+
+local function check_is_classified_file_clicked(all_sprites, x, y)
+    for _, file in ipairs(all_sprites.classified_files) do
+        if file.moveable and file.visible then
+            local width = file.image:getWidth()
+            local height = file.image:getHeight()
+            if x >= file.x and x <= file.x + width and y >= file.y and y <= file.y + height then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+---------- Mouse presses ----------
+local function handle_mouse_press_game(all_sprites, x, y)
+    -- first check if a classified file is clicked
+    is_classified_file_clicked = check_is_classified_file_clicked(all_sprites, x, y)
+
+    for _, sprite in pairs(all_sprites) do
+        if is_classified_file_clicked then
             sprite = reverse(sprite)
-            for index, file in ipairs(sprite) do
-                if file.visible then
-                    local width = file.image:getWidth()
-                    local height = file.image:getHeight()
-                    if x >= file.x and x <= file.x + width and
-                        y >= file.y and y <= file.y + height then
-                        file.move = true
+        end
+
+        for index, file in ipairs(sprite) do
+            if file.moveable and file.visible then
+                local width = file.image:getWidth()
+                local height = file.image:getHeight()
+                if x >= file.x and x <= file.x + width and y >= file.y and y <= file.y + height then
+                    file.move = true
+
+                    if file.sprite_type == "classified_file" then
                         file.animating_part_1_clicked = true
                         file.animation_timer = 0
                         table.remove(sprite, index)
@@ -73,25 +95,66 @@ function mouse.pressed(all_sprites, x, y, button)
     end
 end
 
-function mouse.released(all_sprites, button)
-    if button == 1 then
-        for _, sprite in pairs(all_sprites) do
-            for _, file in ipairs(sprite) do
-                if file.visible then
-                    if file.move then
-                        file.animating_part_1_clicked = false
-                        file.animating_part_2_clicked = true
-                        file.animation_timer = 0
-                    end
-                    file.move = false
-                    file.resetting_rotation = true
+local function handle_mouse_press_menu(all_sprites, x, y)
+    -- handle mouse press in menu
+    for _, file in pairs(all_sprites.button) do
+        if file.clickable then
+            if x >= file.x and x <= file.x + file.width and y >= file.y and y <= file.y + file.height then
+                if file.text == "PLAY" then
+                    GAME_STATE = GAME_STATES.GAME
+                elseif file.text == "SETTINGS" then
+                    -- settings
+                elseif file.text == "QUIT" then
+                    love.event.quit()
                 end
             end
         end
     end
 end
 
-function mouse.moved(all_sprites, x, y, dx, dy, max_rotation)
+function mouse.pressed(all_sprites, x, y, button, istouch, presses)
+    if button == 1 then
+        if GAME_STATE == GAME_STATES.GAME then
+            handle_mouse_press_game(all_sprites, x, y)
+        elseif GAME_STATE == GAME_STATES.MENU then
+            handle_mouse_press_menu(all_sprites, x, y)
+        end
+    end
+end
+
+---------- Mouse releases ----------
+function handle_mouse_release_game(all_sprites, x, y)
+    for _, sprite in pairs(all_sprites) do
+        for _, file in ipairs(sprite) do
+            if file.visible then
+                if file.move and file.sprite_type == "classified_file" then
+                    file.animating_part_1_clicked = false
+                    file.animating_part_2_clicked = true
+                    file.animation_timer = 0
+                end
+                file.resetting_rotation = true
+            end
+            file.move = false
+        end
+    end
+end
+
+function handle_mouse_release_menu(all_sprites, x, y)
+    -- handle mouse release in menu
+end
+
+function mouse.released(all_sprites, x, y, button, istouch, presses)
+    if button == 1 then
+        if GAME_STATE == GAME_STATES.GAME then
+            handle_mouse_release_game(all_sprites, x, y)
+        elseif GAME_STATE == GAME_STATES.MENU then
+            handle_mouse_release_menu(all_sprites, x, y)
+        end
+    end
+end
+
+---------- Mouse movement ----------
+function handle_mouse_move_game(all_sprites, x, y, dx, dy, max_rotation)
     for _, sprite in pairs(all_sprites) do
         for _, file in ipairs(sprite) do
             if file.move and file.visible and file.moveable then
@@ -108,6 +171,45 @@ function mouse.moved(all_sprites, x, y, dx, dy, max_rotation)
                 end
             end
         end
+    end
+end
+
+function handle_mouse_move_menu(all_sprites, x, y, dx, dy, max_rotation)
+    -- handle mouse move in menu
+end
+
+function mouse.moved(all_sprites, x, y, dx, dy, max_rotation)
+    if GAME_STATE == GAME_STATES.GAME then
+        handle_mouse_move_game(all_sprites, x, y, dx, dy, max_rotation)
+    elseif GAME_STATE == GAME_STATES.MENU then
+        handle_mouse_move_menu(all_sprites, x, y, dx, dy, max_rotation)
+    end
+end
+
+---------- Mouse hover ----------
+local function handle_mouse_hover_game(all_sprites, x, y)
+
+end
+
+local function handle_mouse_hover_menu(all_sprites, x, y)
+    -- handle mouse hover in menu
+    -- buttons
+    for _, file in pairs(all_sprites.button) do
+        if file.clickable then
+            if x >= file.x and x <= file.x + file.width and y >= file.y and y <= file.y + file.height then
+                file.color = {0.07, 0.07, 0.07}
+            else
+                file.color = {1, 1, 1}
+            end
+        end
+    end
+end
+
+function mouse.hover(all_sprites, x, y)
+    if GAME_STATE == GAME_STATES.MENU then
+        handle_mouse_hover_menu(all_sprites, x, y)
+    elseif GAME_STATE == GAME_STATES.GAME then
+        handle_mouse_hover_game(all_sprites, x, y)
     end
 end
 

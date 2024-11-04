@@ -27,7 +27,7 @@ GAME_STATES = {
     MENU = 0,
     GAME = 1,
 }
-GAME_STATE = GAME_STATES.GAME
+GAME_STATE = GAME_STATES.MENU
 
 -- imported files
 local menu = require("menu")
@@ -36,6 +36,7 @@ local transition = require("transition")
 
 -- shader
 local moonshine = require("moonshine")
+local effect
 
 -- music
 local music_files = {
@@ -44,6 +45,7 @@ local music_files = {
     "music/Encrypted Dreams.mp3",    
 }
 local music_index = 1
+local music
 
 function love.load()
     love.window.setTitle("Classified Chaos")
@@ -56,8 +58,8 @@ function love.load()
     love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
 
     -- load shaders
-    effect = moonshine(moonshine.effects.chromasep)
-    effect.chromasep.radius = 2
+    effect = moonshine(moonshine.effects.crt)
+    effect.crt.distortionFactor = {1.02, 1.04}
 
     -- load assets
     menu.load()
@@ -112,13 +114,13 @@ function love.mousemoved(x, y, dx, dy, istouch)
 end
 
 function love.draw()
-    effect(function()
-        if GAME_STATE == GAME_STATES.MENU then
+    if GAME_STATE == GAME_STATES.MENU then
+        effect(function()
             menu.draw()
-        elseif GAME_STATE == GAME_STATES.GAME then
-            game.draw()
-        end
-    end)
+        end)
+    elseif GAME_STATE == GAME_STATES.GAME then
+        game.draw()
+    end
 end
 
 function love.resize(w, h)
