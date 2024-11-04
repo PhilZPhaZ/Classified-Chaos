@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 --]]
 
-function draw(file)
-    if file.visible then
-        local width = file.image:getWidth()
-        local height = file.image:getHeight()
-        love.graphics.draw(file.image, file.x + width / 2, file.y + height / 2, file.rotation, file.scale, file.scale, width / 2, height / 2) 
-    end
-end
+-- import all sprites
+local sprites = {
+    CLASSIFIED_FILE = require "sprites.classified_file",
+}
+
+return sprites
